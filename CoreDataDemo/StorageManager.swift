@@ -4,7 +4,6 @@
 //
 //  Created by Артем Соколовский on 12.05.2021.
 //
-import UIKit
 import Foundation
 import CoreData
 
