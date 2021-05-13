@@ -8,10 +8,6 @@
 import UIKit
 import CoreData
 
-protocol TaskViewControllereDelegate {
-    func reloadData()
-}
-
 class TaskListViewController: UITableViewController {
     
     private let context = StorageManager.shared.persistentContainer.viewContext
@@ -93,10 +89,7 @@ class TaskListViewController: UITableViewController {
         present(alert, animated: true)
     }
     
-    private func update(_ taskName: String, indexPath: IndexPath) {
-        
-        let item: Task = taskList[indexPath.row]
-        item.title = taskName
+    private func checkChanges() {
         if context.hasChanges {
             do {
                 try context.save()
@@ -104,7 +97,12 @@ class TaskListViewController: UITableViewController {
                 print(error.localizedDescription)
             }
         }
-        reloadData()
+    }
+    
+    private func update(_ taskName: String, indexPath: IndexPath) {
+        let item: Task = taskList[indexPath.row]
+        item.title = taskName
+        tableView.reloadRows(at: [indexPath], with: .fade)
     }
     
     private func save(_ taskName: String) {
@@ -112,17 +110,9 @@ class TaskListViewController: UITableViewController {
         guard let task = NSManagedObject(entity: entityDescription, insertInto: context) as? Task else { return }
         task.title = taskName
         taskList.append(task)
-        
         let cellIndex = IndexPath(row: taskList.count - 1, section: 0)
         tableView.insertRows(at: [cellIndex], with: .automatic)
-        
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch let error {
-                print(error.localizedDescription)
-            }
-        }
+        checkChanges()
     }
 }
 
@@ -158,13 +148,5 @@ extension TaskListViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         showAlert(with: "Update Task", and: "What do you want to do?", and: indexPath)
         tableView.deselectRow(at: indexPath, animated: true)
-    }
-}
-
-// MARK: - TaskViewControllereDelegate
-extension TaskListViewController: TaskViewControllereDelegate {
-    func reloadData() {
-        fetchData()
-        tableView.reloadData()
     }
 }
